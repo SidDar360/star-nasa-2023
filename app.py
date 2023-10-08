@@ -193,20 +193,27 @@ if uploaded_files is not None and len(uploaded_files) > 0:
         #st.snow()
         edited_df = edited_df[(edited_df["apply_Selection"] ==True)] # & (edited_df["beforText"] != edited_df["afterText"])]
 
-        st.table(edited_df)
+        # st.table(edited_df)
 
         beforeArr = []
         afterArr = []
 
         #print("This is the length of the edited dtatafram: " + str(len(edited_df)))
         for i in range(len(edited_df)):
-            fmatStr = edited_df.loc[i, "beforText"].strip()
-            # fmatAfterStr = edited_df.loc[i, "beforText"].strip()
+            fmatStr = edited_df.loc[i, "beforText"].lstrip().rstrip()
+            fmatAfterStr = edited_df.loc[i, "afterText"].lstrip().rstrip()
             #print(len(fmatStr))
             #print(fmatStr)
             if (fmatStr != "" and (edited_df.loc[i, "beforText"] != edited_df.loc[i, "afterText"])):
-                beforeArr.append(edited_df.loc[i, "beforText"])
-                afterArr.append(edited_df.loc[i, "afterText"]) 
+                # now identify words changed
+                print(fmatStr)
+                print(fmatAfterStr)
+                fmatStrArr = fmatStr.split()
+                fmatAfterStrArr = fmatAfterStr.split()
+                for i in range(len(fmatStrArr)):
+                    if(fmatStrArr[i] !=  fmatAfterStrArr[i]):
+                        beforeArr.append(fmatStrArr[i])
+                        afterArr.append(fmatAfterStrArr[i]) 
 
 
             #print(edited_df.loc[i, "beforText"], edited_df.loc[i, "afterText"], edited_df.loc[i, "apply_Selection"])
