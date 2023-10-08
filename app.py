@@ -10,6 +10,33 @@ from pandas.api.types import (
     is_numeric_dtype,
     is_object_dtype,
 )
+from PyPDF2 import PdfReader
+from tempfile import NamedTemporaryFile
+import pathlib
+import os
+from asposeCloud import updatePdf
+from asposeWords import updatePdfLocally
+
+def extractLinesFromPdf(pdfFilePath):
+    lineArr = []
+    with open(pdfFilePath, 'rb') as file:
+        pdfReader = PdfReader(file)
+        numPages = len(pdfReader.pages)
+
+        for pageNum in range(numPages):
+            page = pdfReader.pages[pageNum]
+            pageText = page.extract_text()
+
+            # Split text into lines and process each line
+            lines = pageText.split('\n')
+            # print(lines)
+            for line in lines:
+                # Do something with each line, for example, print it
+                # print(line)
+                # line = line.replace(" ", "")
+                if line != "":
+                    lineArr.append(line)
+    return lineArr
 
 # SETUP ------------------------------------------------------------------------
 #favicon = Image.open("/home/obiraj77/star/favicon.ico")
@@ -87,6 +114,31 @@ uploaded_files = st.file_uploader(
 
 if uploaded_files is not None and len(uploaded_files) > 0:
     st.session_state.processing_button_clicked = False
+    # with NamedTemporaryFile(dir='.', suffix='.csv') as f:
+    #     f.write(uploaded_files.getbuffer())
+    # Define a temporary directory
+    temp_dir = "host-star"
+
+    # Create the temporary directory if it doesn't exist
+    os.makedirs(temp_dir, exist_ok=True)
+
+    # Check if a file was uploaded
+    if uploaded_files is not None:
+        # Save the uploaded file to the temporary directory
+        file_path = os.path.join(temp_dir, uploaded_files[0].name) 
+        file_path.replace("'", "")
+        with open(file_path, "wb") as f:
+            f.write(uploaded_files[0].read())
+        
+        # Display the saved file path
+        st.write(f"File saved to: {file_path}")
+
+        lineArray = extractLinesFromPdf(file_path)
+
+        # print(lineArray)
+
+
+
 
     if True: #st.button("Start Processing") or st.session_state.processing_button_clicked == True:
         st.session_state.file_name = uploaded_files[0]
@@ -106,16 +158,30 @@ if uploaded_files is not None and len(uploaded_files) > 0:
             # Cache the dataframe so it's only loaded once
             # @st.cache_data
             def load_data():
-                return pd.DataFrame(
-                    [
-                        {"beforText":"VASUKI DIVYA PONDURI", "afterText": "Sid Darapuram", "apply_Selection": True},
-                        { "beforText":"vasukidivya006@gmail.com", "afterText": "smartsid2007@gmail.com", "apply_Selection": False},
-                        { "beforText":"Sample original text", "afterText": "Revised New Text", "apply_Selection": True},
-                    ]
+                d = []
+                for i in range(len(lineArray)):
+                    tmpStr = lineArray[i].strip()
+                    if (len(tmpStr) > 0):
+                        d.append({"beforText":lineArray[i], "afterText": lineArray[i], "apply_Selection": True})
+                return pd.DataFrame(d
+                    # [
+                    #     for i in range(len(lineArray)):
+                    #         tmpStr = lineArray[i].strip()
+                    #         if (len(tmpStr) > 0):
+                    #             {"beforText":lineArray[i], "afterText": lineArray[i], "apply_Selection": True},
+                    #     # {"beforText":lineArray[0], "afterText": lineArray[0], "apply_Selection": True},
+                    #     # {"beforText":lineArray[1], "afterText": lineArray[1], "apply_Selection": True},
+                    #     # {"beforText":lineArray[2], "afterText": lineArray[2], "apply_Selection": True},
+                    #     # {"beforText":lineArray[3], "afterText": lineArray[3], "apply_Selection": True},
+                    #     # {"beforText":lineArray[4], "afterText": lineArray[4], "apply_Selection": True},
+                    #     # {"beforText":lineArray[5], "afterText": lineArray[5], "apply_Selection": True},
+                    # ]
                 )
 
             df = load_data()
+
             edited_df = st.data_editor(df) # 👈 An editable dataframe
+
 
         except Exception as e:
 
@@ -125,9 +191,47 @@ if uploaded_files is not None and len(uploaded_files) > 0:
 
 
         #st.snow()
-        edited_df = edited_df[edited_df["apply_Selection"] ==True]
+        edited_df = edited_df[(edited_df["apply_Selection"] ==True)] # & (edited_df["beforText"] != edited_df["afterText"])]
 
         st.table(edited_df)
+
+        beforeArr = []
+        afterArr = []
+
+        #print("This is the length of the edited dtatafram: " + str(len(edited_df)))
+        for i in range(len(edited_df)):
+            fmatStr = edited_df.loc[i, "beforText"].strip()
+            # fmatAfterStr = edited_df.loc[i, "beforText"].strip()
+            #print(len(fmatStr))
+            #print(fmatStr)
+            if (fmatStr != "" and (edited_df.loc[i, "beforText"] != edited_df.loc[i, "afterText"])):
+                beforeArr.append(edited_df.loc[i, "beforText"])
+                afterArr.append(edited_df.loc[i, "afterText"]) 
+
+
+            #print(edited_df.loc[i, "beforText"], edited_df.loc[i, "afterText"], edited_df.loc[i, "apply_Selection"])
+        print("pring array versions of changes in######################")
+        print(beforeArr)
+        print(afterArr)
+
+
+        def load_final_changes():
+            d = []
+            for i in range(len(beforeArr)):
+                d.append({"Original":beforeArr[i], "Changed": afterArr[i]})
+            return pd.DataFrame(d)
+
+        finalChangesDf = load_final_changes()
+        st.write("SUMMARY OF CHANGES TO BE COMMITTED")
+        st.table(finalChangesDf)
+
+        if st.button("Apply Changes"):
+            # Call the aspos cloud code to update pdf
+            # print(edited_df["beforText"])
+            updatedFileName = updatePdf(file_path, beforeArr, afterArr)
+            st.write(updatedFileName)
+
+            # Display new updated pdf for downloading in browser 
 
 
 
@@ -167,7 +271,6 @@ if uploaded_files is not None and len(uploaded_files) > 0:
         #     st.table(edited_df)
 
    
-
 
 
 
