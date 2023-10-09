@@ -1,0 +1,7 @@
+OPENAI_API_KEY = "7b7d41f1856e43dfaf6cfd5576f765dc"
+OPENAI_API_BASE = "https://rd-aoai-new.openai.azure.com/"
+OPENAI_API_TYPE = "azure"
+OPENAI_API_VERSION = "2023-05-15"
+OPENAI_DEPLOYMENT_NAME = "rd-turbo"
+OPENAI_DEPLOYMENT_EMBEDDING_NAME = "rd-embd"
+VECTORDB_PERSIST_DIR = "chroma/"

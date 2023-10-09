@@ -1,3 +1,13 @@
+import config
+from ai import AI
+from luna import Luna
+from vectordb import vectorDB
+from pathlib import Path
+import uuid
+ai = AI()
+luna = Luna()
+db = vectorDB()
+
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
@@ -26,14 +36,8 @@ def extractLinesFromPdf(pdfFilePath):
         for pageNum in range(numPages):
             page = pdfReader.pages[pageNum]
             pageText = page.extract_text()
-
-            # Split text into lines and process each line
-            lines = pageText.split('\n')
-            # print(lines)
+            lines = pageText.split('\n\n')
             for line in lines:
-                # Do something with each line, for example, print it
-                # print(line)
-                # line = line.replace(" ", "")
                 if line != "":
                     lineArr.append(line)
     return lineArr
@@ -134,10 +138,18 @@ if uploaded_files is not None and len(uploaded_files) > 0:
         st.write(f"File saved to: {file_path}")
 
         lineArray = extractLinesFromPdf(file_path)
-
-        # print(lineArray)
-
-
+        updated_lineArray = []
+        
+        collection_name = "nasa_base"
+        fulltext = ""
+        context = db.get_context_documents(collection_name, "Get the gist of the document")
+        ds = db.splitText(str(context.page_content))
+        r = ""
+        for d in ds:
+            r += luna.prompt("", "Get the top 10 important points from " + str(d))
+        #print(r)
+        for line in lineArray:
+            updated_lineArray.append(luna.prompt(s_prompt=r, user_prompt = line))
 
 
     if True: #st.button("Start Processing") or st.session_state.processing_button_clicked == True:
@@ -149,7 +161,7 @@ if uploaded_files is not None and len(uploaded_files) > 0:
             st.stop()
 
         srcText = get_text_splitter(uploaded_files[0])
-
+        edited_df = None
         try:
             st.write(
                     "LIST OF SUGGESTIONS. PLEASE SELECT AND ACCEPT"
@@ -162,7 +174,7 @@ if uploaded_files is not None and len(uploaded_files) > 0:
                 for i in range(len(lineArray)):
                     tmpStr = lineArray[i].strip()
                     if (len(tmpStr) > 0):
-                        d.append({"beforText":lineArray[i], "afterText": lineArray[i], "apply_Selection": True})
+                        d.append({"beforText":lineArray[i], "afterText":lineArray[i], "aiSuggestion": updated_lineArray[i]})
                 return pd.DataFrame(d
                     # [
                     #     for i in range(len(lineArray)):
@@ -179,8 +191,18 @@ if uploaded_files is not None and len(uploaded_files) > 0:
                 )
 
             df = load_data()
-
-            edited_df = st.data_editor(df) # 👈 An editable dataframe
+            edited_df = st.data_editor(df, use_container_width = True,column_config = {
+                "beforeText": st.column_config.TextColumn(width="large"),
+                "afterText": st.column_config.TextColumn(),
+                "aiSuggestion": st.column_config.TextColumn(),
+            })
+            #st.table(df)
+            #edited_df = st.data_editor(df, column_config={
+            #    "widgets": st.column_config.TextColumn(
+            #        "Widgets",
+            #        max_chars=5000,
+            #    )
+            #}) # 👈 An editable dataframe
 
 
         except Exception as e:
@@ -191,9 +213,8 @@ if uploaded_files is not None and len(uploaded_files) > 0:
 
 
         #st.snow()
-        edited_df = edited_df[(edited_df["apply_Selection"] ==True)] # & (edited_df["beforText"] != edited_df["afterText"])]
+        #edited_df = edited_df[(edited_df["apply_Selection"] ==True)] # & (edited_df["beforText"] != edited_df["afterText"])]
 
-        # st.table(edited_df)
 
         beforeArr = []
         afterArr = []
