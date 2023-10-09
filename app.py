@@ -45,7 +45,7 @@ def extractLinesFromPdf(pdfFilePath):
 # SETUP ------------------------------------------------------------------------
 #favicon = Image.open("/home/obiraj77/star/favicon.ico")
 st.set_page_config(
-    page_title="STAR: Revolutionizing Technical Standards with AI Using Llama 2 ",
+    page_title="Lunaris: NASA Standards Copilot",
     #page_icon=favicon,
     layout="wide",
     initial_sidebar_state="auto",
@@ -54,13 +54,11 @@ st.set_page_config(
 
 # Sidebar contents ------------------------------------------------------------------------
 with st.sidebar:
-    st.title("STAR - Revolutionizing Technical Standards with AI Using Llama 2")
+    st.title("Lunaris: NASA Standards Copilot")
     st.markdown(
         """
     ## About
-    This app is to Revolutionize Techincal Standards with AI (Llama 2 -powered), built using:
-    - [Streamlit](https://streamlit.io/)
-    - [Meta Llama 2 model](https://ai.meta.com/llama/) 
+    This app is designed by couple of high schoolers to assist in reviewing NASA Technical Standards for clarity, consistency, identifying and rectifying any ambiguities.
     """
     )
     st.write(
@@ -103,7 +101,7 @@ Title_html = """
     </style> 
     
     <div class="title">
-        <h1>Revolutionizing Technical Standards</h1>
+        <h1>Lunaris: NASA Standards Copilot</h1>
         
     </div>
     """
