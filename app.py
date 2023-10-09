@@ -64,7 +64,7 @@ with st.sidebar:
     """
     )
     st.write(
-        "Developed  by [Sid D](https://www.linkedin.com/in/sid-darapuram-259778275/) and [Karthik D]"
+        "Developed  by [Sid D](https://www.linkedin.com/in/sid-darapuram-259778275/) and [Karthik D](https://www.linkedin.com/in/karthik-darisi-68a896294/)"
     )
 
 
@@ -140,16 +140,16 @@ if uploaded_files is not None and len(uploaded_files) > 0:
         lineArray = extractLinesFromPdf(file_path)
         updated_lineArray = []
         
-        collection_name = "nasa_base"
-        fulltext = ""
-        context = db.get_context_documents(collection_name, "Get the gist of the document")
-        ds = db.splitText(str(context.page_content))
-        r = ""
-        for d in ds:
-            r += luna.prompt("", "Get the top 10 important points from " + str(d))
+        #collection_name = "nasa_base"
+        #fulltext = ""
+        #context = db.get_context_documents(collection_name, "Get the gist of the document")
+        #ds = db.splitText(str(context.page_content))
+        #r = ""
+        #for d in ds:
+        #    r += luna.prompt("", "Get the top 10 important points from " + str(d))
         #print(r)
         for line in lineArray:
-            updated_lineArray.append(luna.prompt(s_prompt=r, user_prompt = line))
+            updated_lineArray.append(luna.prompt(s_prompt="", user_prompt = line))
 
 
     if True: #st.button("Start Processing") or st.session_state.processing_button_clicked == True:
