@@ -102,7 +102,7 @@ Title_html = """
     
     <div class="title">
         <h1>Lunaris: NASA Standards Copilot</h1>
-        
+        <h2>Upload your standards file and get AI generated suggestions</h2>
     </div>
     """
 components.html(Title_html)
